@@ -1,21 +1,22 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Tactical FPS - Chromebook Edition</title>
+    <title>Tactical FPS</title>
     <style>
-        body { margin: 0; overflow: hidden; background: #000; }
-        #menu { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); color: white; text-align: center; font-family: sans-serif; background: rgba(0,0,0,0.8); padding: 20px; border: 1px solid #333; }
-        button { padding: 10px 20px; cursor: pointer; background: #444; color: white; border: none; margin: 10px; }
+        body { margin: 0; overflow: hidden; background: #000; font-family: sans-serif; }
+        #menu { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); color: white; text-align: center; background: rgba(0,0,0,0.9); padding: 30px; border: 2px solid #0f0; z-index: 10; }
+        button { padding: 15px 30px; cursor: pointer; background: #222; color: #0f0; border: 1px solid #0f0; font-weight: bold; }
+        #debug-log { position: absolute; bottom: 10px; left: 10px; color: #0f0; font-size: 12px; pointer-events: none; }
     </style>
 </head>
 <body>
     <div id="menu">
-        <h1>TACTICAL FPS</h1>
-        <button onclick="initGame()">START GAME</button>
-        <p>Controls: WASD Move | Mouse Look | Click Shoot</p>
+        <h1>TACTICAL BREACH</h1>
+        <!-- Changed to call window.startGame -->
+        <button onclick="window.startGame()">START MISSION</button>
     </div>
+    <div id="debug-log">Status: Waiting for input...</div>
 
-    <!-- This script tag loads the engine from the web -->
     <script type="importmap">
         {
             "imports": {
@@ -29,48 +30,59 @@
         import * as THREE from 'three';
         import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 
-        async function initGame() {
-            document.getElementById('menu').style.display = 'none';
+        // This makes the function visible to your button
+        window.startGame = function() {
+            document.getElementById('debug-log').innerText = "Status: Starting Engine...";
+            try {
+                init();
+            } catch (err) {
+                alert("CRITICAL ERROR: " + err.message);
+            }
+        };
+
+        function init() {
+            const menu = document.getElementById('menu');
+            menu.style.display = 'none';
 
             const scene = new THREE.Scene();
-            scene.background = new THREE.Color(0x87ceeb); // Sky blue
+            scene.background = new THREE.Color(0x222222);
+            
             const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
             const renderer = new THREE.WebGLRenderer({ antialias: true });
             renderer.setSize(window.innerWidth, window.innerHeight);
             document.body.appendChild(renderer.domElement);
 
-            // Lights
             scene.add(new THREE.AmbientLight(0xffffff, 1));
-            const sun = new THREE.DirectionalLight(0xffffff, 2);
-            sun.position.set(5, 10, 5);
-            scene.add(sun);
+            camera.position.set(0, 1.6, 5);
 
-            // LOADER: This is where your model goes
             const loader = new GLTFLoader();
             
-            // REPLACE THE URL BELOW WITH YOUR UPLOADED MAP LINK
-            const mapUrl = 'https://github.com/PH5hundred/Strike-Force-Omega/blob/main/lowpoly__fps__tdm__game__map_by_resoforge.glb'; 
+            // IMPORTANT: Change 'map.glb' to EXACTLY what your file is named on GitHub
+            const mapFile = 'map1.glb'; 
 
-            loader.load(mapUrl, (gltf) => {
-                scene.add(gltf.scene);
-                console.log("Map Loaded!");
-            }, undefined, (error) => {
-                console.error("Error loading map. Make sure the URL is a direct link to the .glb file.");
-            });
+            document.getElementById('debug-log').innerText = "Status: Loading Map File...";
 
-            // Basic Camera Position
-            camera.position.set(0, 1.6, 5);
+            loader.load(mapFile, 
+                (gltf) => {
+                    scene.add(gltf.scene);
+                    document.getElementById('debug-log').innerText = "Status: Map Loaded! Lock mouse to play.";
+                    document.body.requestPointerLock();
+                },
+                (xhr) => {
+                    const percent = Math.round((xhr.loaded / xhr.total) * 100);
+                    document.getElementById('debug-log').innerText = "Status: Loading Map " + percent + "%";
+                },
+                (error) => {
+                    alert("MAP ERROR: Could not find '" + mapFile + "'. Check your GitHub filenames!");
+                }
+            );
 
             function animate() {
                 requestAnimationFrame(animate);
                 renderer.render(scene, camera);
             }
             animate();
-
-            // Lock Mouse
-            document.body.requestPointerLock();
         }
-        window.initGame = initGame;
     </script>
 </body>
 </html>
