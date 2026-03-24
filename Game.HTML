@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Tactical FPS - Chromebook Edition</title>
+    <style>
+        body { margin: 0; overflow: hidden; background: #000; }
+        #menu { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); color: white; text-align: center; font-family: sans-serif; background: rgba(0,0,0,0.8); padding: 20px; border: 1px solid #333; }
+        button { padding: 10px 20px; cursor: pointer; background: #444; color: white; border: none; margin: 10px; }
+    </style>
+</head>
+<body>
+    <div id="menu">
+        <h1>TACTICAL FPS</h1>
+        <button onclick="initGame()">START GAME</button>
+        <p>Controls: WASD Move | Mouse Look | Click Shoot</p>
+    </div>
+
+    <!-- This script tag loads the engine from the web -->
+    <script type="importmap">
+        {
+            "imports": {
+                "three": "https://unpkg.com",
+                "three/addons/": "https://unpkg.com"
+            }
+        }
+    </script>
+
+    <script type="module">
+        import * as THREE from 'three';
+        import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
+
+        async function initGame() {
+            document.getElementById('menu').style.display = 'none';
+
+            const scene = new THREE.Scene();
+            scene.background = new THREE.Color(0x87ceeb); // Sky blue
+            const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+            const renderer = new THREE.WebGLRenderer({ antialias: true });
+            renderer.setSize(window.innerWidth, window.innerHeight);
+            document.body.appendChild(renderer.domElement);
+
+            // Lights
+            scene.add(new THREE.AmbientLight(0xffffff, 1));
+            const sun = new THREE.DirectionalLight(0xffffff, 2);
+            sun.position.set(5, 10, 5);
+            scene.add(sun);
+
+            // LOADER: This is where your model goes
+            const loader = new GLTFLoader();
+            
+            // REPLACE THE URL BELOW WITH YOUR UPLOADED MAP LINK
+            const mapUrl = 'PASTE_YOUR_URL_HERE'; 
+
+            loader.load(mapUrl, (gltf) => {
+                scene.add(gltf.scene);
+                console.log("Map Loaded!");
+            }, undefined, (error) => {
+                console.error("Error loading map. Make sure the URL is a direct link to the .glb file.");
+            });
+
+            // Basic Camera Position
+            camera.position.set(0, 1.6, 5);
+
+            function animate() {
+                requestAnimationFrame(animate);
+                renderer.render(scene, camera);
+            }
+            animate();
+
+            // Lock Mouse
+            document.body.requestPointerLock();
+        }
+        window.initGame = initGame;
+    </script>
+</body>
+</html>
